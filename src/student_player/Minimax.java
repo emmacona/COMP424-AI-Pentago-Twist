@@ -26,10 +26,6 @@ public class Minimax {
       public int getValue() {
         return this.value;
       }
-
-      public void setValue(int value) {
-        this.value = value;
-      }
       
       public PentagoMove getPentagoMove() {
         return this.pentagoMove;
@@ -155,28 +151,67 @@ public class Minimax {
 
   public int getAdjacentBonusPoints(PentagoBoardState boardState, String playerColor){
     int bonus = 0;
+    bonus += getDiagonalPoints(boardState, playerColor);
+    bonus += getRowPoints(boardState, playerColor);
+    bonus += getColumnPoints(boardState, playerColor);
+    return bonus;
+  }
+
+  public int getDiagonalPoints(PentagoBoardState boardState, String playerColor){
+    int bonus = 0;
     int increment = 2;
+    int lastConsecutive = -1;
 
     for (int i = 0; i <= 3; i++){ // up to 4 adjacent because 5 would be game over
-      // 1) diagonal
       String d1 = boardState.getPieceAt(i, i).toString();
       String d2 = boardState.getPieceAt((i+1)%6, (i+1)%6).toString(); // %6 to wrap around board limit
-      if(d1.equals(playerColor) && d2.equals(playerColor)) bonus += increment; // bonus adjacent pieces along diagonal
-      
-      // 2) column
-      String c1 = boardState.getPieceAt(i, i).toString();
-      String c2 = boardState.getPieceAt(i, (i+1)%6).toString(); // %6 to wrap around board limit
-      if(c1.equals(playerColor) && c2.equals(playerColor)) bonus += increment; // bonus adjacent pieces along diagonal
+      if(d1.equals(playerColor) && d2.equals(playerColor)){
+        lastConsecutive = i;
+        if(lastConsecutive == (i-1)){
+          increment *= 2; // The more consecutive pieces = the bigger the bonus
+        }
+      }
+      bonus += increment; // bonus adjacent pieces along diagonal   
+    }
+    return bonus;
+  }
 
-      // 3) row
+  public int getRowPoints(PentagoBoardState boardState, String playerColor){
+    int bonus = 0;
+    int increment = 2;
+    int lastConsecutive = -1;
+
+    for (int i = 0; i <= 3; i++){ // up to 4 adjacent because 5 would be game over
       String r1 = boardState.getPieceAt(i, i).toString();
       String r2 = boardState.getPieceAt((i+1)%6, i).toString(); // %6 to wrap around board limit
-      if(r1.equals(playerColor) && r2.equals(playerColor)) bonus += increment; // bonus adjacent pieces along diagonal
-
-      increment *= 2; // More pieces in a row == award more points everytime
+      if(r1.equals(playerColor) && r2.equals(playerColor)){
+        lastConsecutive = i;
+        if(lastConsecutive == (i-1)){
+          increment *= 2; // The more consecutive pieces = the bigger the bonus
+        }
+      }
+      bonus += increment; // bonus adjacent pieces along row   
     }
     return bonus;
   }
 
 
+  public int getColumnPoints(PentagoBoardState boardState, String playerColor){
+    int bonus = 0;
+    int increment = 2;
+    int lastConsecutive = -1;
+
+    for (int i = 0; i <= 3; i++){ // up to 4 adjacent because 5 would be game over
+      String c1 = boardState.getPieceAt(i, i).toString();
+      String c2 = boardState.getPieceAt(i, (i+1)%6).toString(); // %6 to wrap around board limit
+      if(c1.equals(playerColor) && c2.equals(playerColor)){
+        lastConsecutive = i;
+        if(lastConsecutive == (i-1)){
+          increment *= 2; // The more consecutive pieces = the bigger the bonus
+        }
+      }
+      bonus += increment; // bonus adjacent pieces along row   
+    }
+    return bonus;
+  }
 }
