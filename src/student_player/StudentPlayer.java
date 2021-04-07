@@ -30,12 +30,12 @@ public class StudentPlayer extends PentagoPlayer {
         Move myMove;
         int turn_nb = pbs.getTurnNumber();
         System.out.println("///////////// STUDENT PLAYING ////////////////");
-        if(turn_nb < 3) {
-            myMove = myTools.playCenter(boardState, this.player_id);
-        }
-        else {
+        // if(turn_nb < 3) {
+        //     myMove = myTools.playCenter(boardState, this.player_id);
+        // }
+        // else {
             myMove = minimax.alphaBetaPruning(boardState, endTime);
-        }
+        // }
 
         // Return your move to be processed by the server.
         return myMove;
