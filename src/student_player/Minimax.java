@@ -162,9 +162,22 @@ public class Minimax {
     int increment = 2;
     int lastConsecutive = -1;
 
-    for (int i = 0; i <= 3; i++){ // up to 4 adjacent because 5 would be game over
+    // left to right
+    for (int i = 0; i <= 4; i++){ // up to 4 because at (4,4) it will also check piece at (5,5)
       String d1 = boardState.getPieceAt(i, i).toString();
       String d2 = boardState.getPieceAt((i+1)%6, (i+1)%6).toString(); // %6 to wrap around board limit
+      if(d1.equals(playerColor) && d2.equals(playerColor)){
+        lastConsecutive = i;
+        if(lastConsecutive == (i-1)){
+          increment *= 2; // The more consecutive pieces = the bigger the bonus
+        }
+      }
+      bonus += increment; // bonus adjacent pieces along diagonal   
+    }
+    // right to left
+    for (int i = 5; i <= 1; i--){ // down to 1 because at (1,4) it will also check piece at (0,5)
+      String d1 = boardState.getPieceAt(i, 5-i).toString();
+      String d2 = boardState.getPieceAt((i-1)%6, (i+1)%6).toString(); // %6 to wrap around board limit
       if(d1.equals(playerColor) && d2.equals(playerColor)){
         lastConsecutive = i;
         if(lastConsecutive == (i-1)){
@@ -181,7 +194,7 @@ public class Minimax {
     int increment = 2;
     int lastConsecutive = -1;
 
-    for (int i = 0; i <= 3; i++){ // up to 4 adjacent because 5 would be game over
+    for (int i = 0; i <= 4; i++){ // up to 4 adjacent because 5 would be game over
       String r1 = boardState.getPieceAt(i, i).toString();
       String r2 = boardState.getPieceAt((i+1)%6, i).toString(); // %6 to wrap around board limit
       if(r1.equals(playerColor) && r2.equals(playerColor)){
@@ -201,7 +214,7 @@ public class Minimax {
     int increment = 2;
     int lastConsecutive = -1;
 
-    for (int i = 0; i <= 3; i++){ // up to 4 adjacent because 5 would be game over
+    for (int i = 0; i <= 4; i++){ // up to 4 adjacent because 5 would be game over
       String c1 = boardState.getPieceAt(i, i).toString();
       String c2 = boardState.getPieceAt(i, (i+1)%6).toString(); // %6 to wrap around board limit
       if(c1.equals(playerColor) && c2.equals(playerColor)){
