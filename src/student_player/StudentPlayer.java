@@ -28,9 +28,9 @@ public class StudentPlayer extends PentagoPlayer {
         PentagoBoardState pbs = (PentagoBoardState) boardState.clone();
         Move myMove;
 
-        System.out.println("///////////// STUDENT PLAYING ////////////////");
+        System.out.println("// STUDENT PLAYING //");
         myMove = minimax.alphaBetaPruning(pbs, endTime);
-
+        
         // Return your move to be processed by the server.
         return myMove;
     }

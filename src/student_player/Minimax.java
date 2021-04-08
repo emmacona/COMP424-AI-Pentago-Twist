@@ -26,6 +26,10 @@ public class Minimax {
       public int getValue() {
         return this.value;
       }
+
+      public void setValue(int value) {
+      this.value = value;
+    }
       
       public PentagoMove getPentagoMove() {
         return this.pentagoMove;
@@ -80,7 +84,9 @@ public class Minimax {
   
           // Prune in the event of inconsistency (α ≥ β)
           if (beta <= alpha) {
-            break;
+            bestMove.setValue(beta);
+            bestMove.setPentagoMove(pentagoMove);
+            return bestMove;
           }
         }
         return bestMove;
@@ -106,7 +112,9 @@ public class Minimax {
   
             // Prune in the event of inconsistency (α ≥ β)
           if (beta <= alpha) {
-            break;
+            bestMove.setValue(alpha);
+            bestMove.setPentagoMove(pentagoMove);
+            return bestMove;
           }
         }
         return bestMove;
