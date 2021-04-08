@@ -84,8 +84,8 @@ public class Minimax {
   
           // Prune in the event of inconsistency (α ≥ β)
           if (beta <= alpha) {
-            bestMove.setValue(beta);
-            bestMove.setPentagoMove(pentagoMove);
+            // bestMove.setValue(beta);
+            // bestMove.setPentagoMove(pentagoMove);
             return bestMove;
           }
         }
@@ -112,8 +112,8 @@ public class Minimax {
   
             // Prune in the event of inconsistency (α ≥ β)
           if (beta <= alpha) {
-            bestMove.setValue(alpha);
-            bestMove.setPentagoMove(pentagoMove);
+            // bestMove.setValue(alpha);
+            // bestMove.setPentagoMove(pentagoMove);
             return bestMove;
           }
         }

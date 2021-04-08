@@ -4,38 +4,39 @@ import java.util.ArrayList;
 
 import boardgame.Move;
 import pentago_twist.PentagoBoardState;
-import pentago_twist.PentagoCoord;
 import pentago_twist.PentagoMove;
 
 public class MyTools {
+    private Move bestMove;
 
     // Reminder : these strategies are played in the first 3 turns only, so one of these options must be available
-    public Move playCenter(PentagoBoardState boardState){
-      
+    public Move playCenter(PentagoBoardState boardState, long endTime){
+      bestMove = boardState.getAllLegalMoves().get(0);
       ArrayList<PentagoMove> allMoves = boardState.getAllLegalMoves();
-
-      // for the first rounds, place piece in the centers
-      for (PentagoMove pentagoMove : allMoves) {
-        int x = pentagoMove.getMoveCoord().getX();
-        int y = pentagoMove.getMoveCoord().getY();
-        if(x == 1 && y == 1){
-          System.out.println("FIRST QUAD CENTER");
-          return pentagoMove;
-        }
-        else if(x == 4 && y == 1){
-          System.out.println("2ND QUAD CENTER");
-          return pentagoMove;
-        }
-        else if(x == 1 && y == 4){
-          System.out.println("3RD QUAD CENTER");
-          return pentagoMove;
-        }
-        else if(x == 4 && y == 4){
-          System.out.println("4TH QUAD CENTER");
-          return pentagoMove;
+      while( System.currentTimeMillis() < endTime){
+        // for the first rounds, place piece in the centers
+        for (PentagoMove pentagoMove : allMoves) {
+          int x = pentagoMove.getMoveCoord().getX();
+          int y = pentagoMove.getMoveCoord().getY();
+          if(x == 1 && y == 1){
+            bestMove = pentagoMove;
+            return bestMove;
+          }
+          else if(x == 4 && y == 1){
+            bestMove = pentagoMove;
+            return bestMove;
+          }
+          else if(x == 1 && y == 4){
+            bestMove = pentagoMove;
+            return bestMove;
+          }
+          else if(x == 4 && y == 4){
+            bestMove = pentagoMove;
+            return bestMove;
+          }
         }
       }
-      return boardState.getAllLegalMoves().get(0);
+      return bestMove;
     }
 
     public Move playMiddle(PentagoBoardState boardState, int playerId){
