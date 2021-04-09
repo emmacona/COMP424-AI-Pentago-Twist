@@ -155,9 +155,54 @@ public class Minimax {
     bonus += getRLDiagonalPoints(boardState, playerColor, oponentColor);
     bonus += getRowPoints(boardState, playerColor, oponentColor);
     bonus += getColumnPoints(boardState, playerColor, oponentColor);
-    bonus += getCenterPoints(boardState, playerColor, oponentColor);
     return bonus;
   }
+
+  public int calculatePoints(Piece playerColor, Piece oponentColor, Piece r1, Piece r2, Piece r3, Piece r4, Piece r5){
+    int bonus = 0;
+    if (r1 ==  playerColor && r2 == playerColor  && r3 == playerColor  && r4 == playerColor){
+      if(r5 == Piece.EMPTY){
+        bonus += 500; // if 4 in a row and 5th one is empty --> 100% DO THIS MOVE
+      } 
+    } 
+    else if (r1 ==  playerColor && r2 == playerColor  && r3 == playerColor){
+      if(r4 == Piece.EMPTY){
+        bonus += 40;
+      } 
+    } 
+    else if (r2 ==  playerColor && r3 == playerColor  && r4 == playerColor){
+      if(r1 == Piece.EMPTY || r5 == Piece.EMPTY){
+        bonus += 40;
+      } 
+    } 
+    else if (r3 ==  playerColor && r4 == playerColor  && r5 == playerColor){
+      if(r2 == Piece.EMPTY){
+        bonus += 40;
+      } 
+    } 
+    else if (r1 ==  playerColor && r2 == playerColor){
+      if(r3 == Piece.EMPTY){
+        bonus += 20;
+      } 
+    } 
+    else if (r2 ==  playerColor && r3 == playerColor){
+      if(r1 == Piece.EMPTY || r4 == Piece.EMPTY){
+        bonus += 20;
+      } 
+    } 
+    else if (r3 ==  playerColor && r4 == playerColor){
+      if(r2 == Piece.EMPTY || r5 == Piece.EMPTY){
+        bonus += 20;
+      } 
+    } 
+    else if (r1 ==  oponentColor && r2 == oponentColor  && r3 == oponentColor  && r4 == oponentColor){
+      if (r5 == Piece.EMPTY){
+        bonus += 500; // OPONENT MIGHT WIN --> DEFENSE MOVE !!
+      } 
+    } 
+    return bonus;
+  }
+
 
   public int getRLDiagonalPoints(PentagoBoardState boardState, Piece playerColor, Piece oponentColor){
     int bonus = 0;
@@ -244,70 +289,6 @@ public class Minimax {
         bonus += calculatePoints(playerColor, oponentColor, r1, r2, r3, r4, r5);   
       }
 
-    }
-    return bonus;
-  }
-
-  public int calculatePoints(Piece playerColor, Piece oponentColor, Piece r1, Piece r2, Piece r3, Piece r4, Piece r5){
-    int bonus = 0;
-    if (r1 ==  playerColor && r2 == playerColor  && r3 == playerColor  && r4 == playerColor){
-      if(r5 == Piece.EMPTY){
-        bonus += 500; // if 4 in a row and 5th one is empty --> 100% DO THIS MOVE
-      } 
-    } 
-    else if (r1 ==  playerColor && r2 == playerColor  && r3 == playerColor){
-      if(r4 == Piece.EMPTY){
-        bonus += 40;
-      } 
-    } 
-    else if (r2 ==  playerColor && r3 == playerColor  && r4 == playerColor){
-      if(r1 == Piece.EMPTY || r5 == Piece.EMPTY){
-        bonus += 40;
-      } 
-    } 
-    else if (r3 ==  playerColor && r4 == playerColor  && r5 == playerColor){
-      if(r2 == Piece.EMPTY){
-        bonus += 40;
-      } 
-    } 
-    else if (r1 ==  playerColor && r2 == playerColor){
-      if(r3 == Piece.EMPTY){
-        bonus += 20;
-      } 
-    } 
-    else if (r2 ==  playerColor && r3 == playerColor){
-      if(r1 == Piece.EMPTY || r4 == Piece.EMPTY){
-        bonus += 20;
-      } 
-    } 
-    else if (r3 ==  playerColor && r4 == playerColor){
-      if(r2 == Piece.EMPTY || r5 == Piece.EMPTY){
-        bonus += 20;
-      } 
-    } 
-    else if (r1 ==  oponentColor && r2 == oponentColor  && r3 == oponentColor  && r4 == oponentColor){
-      if (r5 == Piece.EMPTY){
-        bonus += 500; // OPONENT MIGHT WIN --> DEFENSE MOVE !!
-      } 
-    } 
-    return bonus;
-  }
-
-  public int getCenterPoints(PentagoBoardState boardState, Piece playerColor, Piece oponentColor){
-    int bonus = 0;
-    int[] centers = {1,4};
-    for (int i = 0; i < 2; i++){
-      for (int j = 0; i < 2; i++){
-        if (boardState.getPieceAt(centers[i], centers[j]) == playerColor){
-          bonus += 1; // give points for center
-        }
-        else if (boardState.getPieceAt(centers[i], centers[j]) == oponentColor){
-          bonus -= 1; // if center alreay used, not so good
-        }
-        else { // its empty
-          bonus += 10; // potentially a good move
-        }
-      } 
     }
     return bonus;
   }

@@ -1,12 +1,7 @@
 package student_player;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import boardgame.Move;
 import pentago_twist.PentagoPlayer;
 import pentago_twist.PentagoBoardState;
-import pentago_twist.PentagoMove;
 
 /** A player file submitted by a student. */
 public class StudentPlayer extends PentagoPlayer {
