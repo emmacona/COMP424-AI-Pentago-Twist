@@ -1,7 +1,7 @@
 package student_player;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import boardgame.Move;
 import pentago_twist.PentagoBoardState;
@@ -13,21 +13,15 @@ public class Node {
     private PentagoBoardState pentagoBoardState; // current state at this point
     private List<Node> children;
     private Node parent;
-    private boolean isMax;
     public Move bestMove;
-    
-    public Node(int value) {
-        this.value = value;
-        this.isMax = true;
-    }
 
     public Node(PentagoBoardState pentagoBoardState) {
       this.pentagoBoardState = pentagoBoardState;
-      this.children = new CopyOnWriteArrayList<>();
+      this.children = new ArrayList<Node>();
     } 
 
-    List<Node> getChildren() {
-      return children;
+    public List<Node> getChildren() {
+      return this.children;
     }
 
     void addChild(Node child) {
@@ -37,14 +31,6 @@ public class Node {
     void setChildren(List<Node> allChildren) {
       this.children = allChildren;
     }
-
-    public void setMaxStatus(boolean isMax) {
-      this.isMax = isMax;
-    } 
-
-    public boolean getMaxStatus() {
-      return this.isMax;
-    } 
 
     public void setParent(Node parent) {
       this.parent = parent;
