@@ -6,3 +6,4 @@ logs/game00005.log
 logs/
 .DS_Store
 .metadata
+bin/

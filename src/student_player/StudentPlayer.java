@@ -1,5 +1,7 @@
 package student_player;
 
+import java.util.List;
+
 import boardgame.Move;
 import pentago_twist.PentagoPlayer;
 import pentago_twist.PentagoBoardState;
@@ -22,21 +24,22 @@ public class StudentPlayer extends PentagoPlayer {
      * make decisions.
      */
     public Move chooseMove(PentagoBoardState boardState) {
+        System.out.println("-----> STUDENT <-------\n");
         long startTime = System.currentTimeMillis();
         long endTime = startTime + 1800; // maximum 1800 ms to find a move
-        Minimax minimax = new Minimax();
         MyTools myTools = new MyTools();
+        Minimax minimax = new Minimax();
+        // ABPruning abPruning = new ABPruning();
         PentagoBoardState pbs = (PentagoBoardState) boardState.clone();
-        Move myMove = null;
-        if(boardState.getTurnNumber() < 3){
-            System.out.println("// STUDENT PLAYING: STATIC MOVE //");
-            myMove = myTools.playCenter(pbs, endTime);
-        }
-        else {
-            System.out.println("// STUDENT PLAYING: Minimax //");
-            myMove = minimax.alphaBetaPruning(pbs, endTime);
-        }
-        
+        int player = pbs.getTurnPlayer();
+        Move myMove;
+
+        // if(pbs.getTurnNumber() < 3){
+        //     myMove = myTools.playCenter(pbs, endTime);
+        // } else {
+            myMove = minimax.aBPruning(pbs, player);
+            // myMove = abPruning.alphaBetaPruning(boardState, endTime, player);
+        // }
         
         // Return your move to be processed by the server.
         return myMove;

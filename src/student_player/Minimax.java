@@ -1,131 +1,108 @@
 package student_player;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import boardgame.Board;
 import boardgame.Move;
 import pentago_twist.PentagoBoardState;
 import pentago_twist.PentagoMove;
 
-public class Minimax {
-  private int alpha = -Integer.MAX_VALUE; // At max nodes, update α only
-  private int beta = Integer.MAX_VALUE; // At min nodes, update β only
-  private int WIN = 10;
+public class Minimax {	
+  private int WIN = 100;
   private int DRAW = 5;
-  private int LOSE = -10;
-  private MinmaxNode bestMove = new MinmaxNode(0);
+  private int LOSE = -100;
 
-  private class MinmaxNode {	
-      private int value;
-      private PentagoMove pentagoMove;
-      
-      public MinmaxNode(int value) {
-          this.value = value;
-      }
- 
-      public int getValue() {
-        return this.value;
-      }
+  public Move aBPruning(PentagoBoardState pbs, int player){
+    int alpha = -Integer.MAX_VALUE; // At max nodes, update α only
+    int beta = Integer.MAX_VALUE; // At min nodes, update β only
 
-      public void setValue(int value) {
-      this.value = value;
+    Node root = new Node(pbs);
+    toggleMinimax(root, alpha, beta, true, 0);
+    Move myMove = root.getBestMove();
+    if (myMove == null){
+      System.out.println("Not found - Get random");
+      myMove = pbs.getRandomMove();
     }
-      
-      public PentagoMove getPentagoMove() {
-        return this.pentagoMove;
-      }
-      
-      public void setPentagoMove(PentagoMove pentagoMove) {
-        this.pentagoMove = pentagoMove;
-      }
+    return myMove;
   }
 
-   public Move alphaBetaPruning(PentagoBoardState boardState, long endTime){
-      boolean isMaximize = true;
-      bestMove = minimaxDecision(boardState, 0, isMaximize, alpha, beta, endTime);
-      PentagoMove bestPentagoMove = bestMove.getPentagoMove();
-      if(bestPentagoMove == null) {
-        System.out.println("NOT FOUND - get random");
-        return boardState.getRandomMove();
-      } else {
-        return bestMove.getPentagoMove();
-      }  
-   }
+  public int toggleMinimax(Node node, int alpha, int beta, boolean isMax, int depth){
+    int player = node.getBoardState().getTurnPlayer();
 
-   public MinmaxNode minimaxDecision(PentagoBoardState boardState, int depth, boolean isMaximize, int alpha, int beta, long endTime){
+    if (depth == 2 || node.getBoardState().gameOver()) {
+      return evaluate(node, player);
+    }
+
+    if (isMax){
+      System.out.println("MAX");
+      return maximize(node, alpha, beta, depth, isMax);
+    } 
+    else {
+      System.out.println("MIN");
+      return minimize(node, alpha, beta, depth, isMax);
+    }
+  }
+
+  public int maximize(Node node, int alpha, int beta, int depth, boolean isMax){
+    PentagoBoardState boardState = node.getBoardState();
     ArrayList<PentagoMove> allMoves = boardState.getAllLegalMoves();
-    PentagoBoardState clonedBoardState;
-    MinmaxNode move;
 
-    while (System.currentTimeMillis() < endTime){
-      if (depth == 2 || boardState.gameOver()) {
-        int value = minimaxValue(boardState);
-        return new MinmaxNode(value);
+    for (PentagoMove pentagoMove : allMoves) {
+      // Process child move on cloned board
+      PentagoBoardState clonedBoard = (PentagoBoardState) boardState.clone();
+      clonedBoard.processMove(pentagoMove);
+
+      // Update game tree
+      Node child = new Node(clonedBoard);
+      child.setParent(node);
+      child.setPentagoMove(pentagoMove);
+
+      int value = toggleMinimax(child, alpha, beta, !isMax, depth+1);
+
+      // Update alpha
+      if(alpha < value){
+        alpha = value;
+        node.setBestMove(pentagoMove);
       }
-  
-      if (isMaximize){
-        bestMove = new MinmaxNode(-Integer.MAX_VALUE);
-        for (PentagoMove pentagoMove : allMoves) {    
-          clonedBoardState = (PentagoBoardState) boardState.clone();
-          clonedBoardState.processMove(pentagoMove);
-          move = minimaxDecision(clonedBoardState, depth+1, !isMaximize, alpha, beta, endTime); // !isMaximize to go into minimize
-  
-          // Update bestMove
-          if(bestMove.getValue() < move.getValue()){
-            // new move is better
-            bestMove = move;
-            bestMove.setPentagoMove(pentagoMove);
-          }
-  
-          // At max nodes, update α only
-          if(move.getValue() > alpha){
-            alpha = move.getValue(); // update to max(alpha, bestValue);
-          }
-  
-          // Prune in the event of inconsistency (α ≥ β)
-          if (beta <= alpha) {
-            // bestMove.setValue(beta);
-            // bestMove.setPentagoMove(pentagoMove);
-            return bestMove;
-          }
-        }
-        return bestMove;
+
+      if (alpha >= beta) {
+        break;
       }
-      else {
-        bestMove = new MinmaxNode(Integer.MAX_VALUE);
-        for (PentagoMove pentagoMove : allMoves) {    
-          clonedBoardState = (PentagoBoardState) boardState.clone();
-          clonedBoardState.processMove(pentagoMove);
-          move = minimaxDecision(clonedBoardState, depth+1, !isMaximize, alpha, beta, endTime); // !isMaximize to go into maximize
-  
-          // Update bestMove
-          if(bestMove.getValue() > move.getValue()){
-            // new move is better
-            bestMove = move;
-            bestMove.setPentagoMove(pentagoMove);
-          }
-  
-          // At max nodes, update β only
-          if(move.getValue() < beta){
-            beta = move.getValue(); // update to min(beta, bestValue);
-          }
-  
-            // Prune in the event of inconsistency (α ≥ β)
-          if (beta <= alpha) {
-            // bestMove.setValue(alpha);
-            // bestMove.setPentagoMove(pentagoMove);
-            return bestMove;
-          }
-        }
-        return bestMove;
-     }
     }
-    System.out.println("TIMES UP");
-    return bestMove; // if time's up, return bext move thus far
+    return alpha;
   }
 
-  public int minimaxValue(PentagoBoardState boardState){
-    int player = boardState.getTurnPlayer();
+  public int minimize(Node node, int alpha, int beta, int depth, boolean isMax){
+    PentagoBoardState boardState = node.getBoardState();
+    ArrayList<PentagoMove> allMoves = boardState.getAllLegalMoves();
+
+    for (PentagoMove pentagoMove : allMoves) {
+      // Process child move on cloned board
+      PentagoBoardState clonedBoard = (PentagoBoardState) boardState.clone();
+      clonedBoard.processMove(pentagoMove);
+
+      // Update game tree
+      Node child = new Node(clonedBoard);
+      child.setParent(node);
+      child.setPentagoMove(pentagoMove);
+
+      int value = toggleMinimax(child, alpha, beta, !isMax, depth+1);
+
+      // Update alpha
+      if(beta > value){
+        beta = value;
+        node.setBestMove(pentagoMove);
+      }
+
+      if (alpha >= beta) break; // prune
+
+    }
+    return beta;
+  }
+
+  public int evaluate(Node node, int player){
+    PentagoBoardState boardState = node.getBoardState();
     int score = 0;
     // If the node is the end of a game, 
     if (boardState.gameOver()) {

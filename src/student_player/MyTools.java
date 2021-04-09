@@ -36,10 +36,10 @@ public class MyTools {
           }
         }
       }
-      return bestMove;
+      return playMiddle(boardState);
     }
 
-    public Move playMiddle(PentagoBoardState boardState, int playerId){
+    public Move playMiddle(PentagoBoardState boardState){
       ArrayList<PentagoMove> allMoves = boardState.getAllLegalMoves();
       // for the first rounds, place piece in the middle pieces (if center not available)
       for (PentagoMove pentagoMove : allMoves) {
@@ -58,10 +58,10 @@ public class MyTools {
           return pentagoMove;
         }
       }
-      return boardState.getAllLegalMoves().get(0);
+      return playCorners(boardState);
     }
 
-    public Move playCorners(PentagoBoardState boardState, int playerId){
+    public Move playCorners(PentagoBoardState boardState){
       ArrayList<PentagoMove> allMoves = boardState.getAllLegalMoves();
       // for the first rounds, place piece in the corners (if center not available)
       for (PentagoMove pentagoMove : allMoves) {

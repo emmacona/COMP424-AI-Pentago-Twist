@@ -3,7 +3,6 @@ package pentago_twist;
 import java.util.ArrayList;
 
 import boardgame.Move;
-import student_player.Minimax_Simple;
 
 /**
  * @author mgrenander
