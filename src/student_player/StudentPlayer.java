@@ -28,22 +28,12 @@ public class StudentPlayer extends PentagoPlayer {
     public Move chooseMove(PentagoBoardState boardState) {
         long startTime = System.currentTimeMillis();
         long endTime = startTime + 1800; // maximum 1800 ms to find a move
-        // MyTools myTools = new MyTools();
         Minimax minimax = new Minimax();
         PentagoBoardState pbs = (PentagoBoardState) boardState.clone();
 
         Move myMove;
-        // if(pbs.getTurnNumber() <= 3){
-        //     System.out.println("STATIC MOVE - CORNERS");
-        //     myMove = myTools.playCorners(boardState);
-        // } 
-        // else {
-            System.out.println("---- PUTAIN DE MERDE -----");
-            int player = pbs.getTurnPlayer();
-            myMove = minimax.aBPruning(pbs, player, endTime);
-        // }
-        
-        
+        int player = pbs.getTurnPlayer();
+        myMove = minimax.aBPruning(pbs, player, endTime);
 
         // Return your move to be processed by the server.
         return myMove;

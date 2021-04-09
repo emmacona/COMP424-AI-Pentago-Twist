@@ -34,7 +34,7 @@ public class Minimax {
       }
       return myMove;
     }
-    return pbs.getRandomMove(); 
+    return pbs.getRandomMove(); // if times up -> get random
   }
 
   public int toggleMinimax(Node node, int alpha, int beta, boolean isMax, int depth){
