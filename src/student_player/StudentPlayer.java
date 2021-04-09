@@ -1,10 +1,12 @@
 package student_player;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import boardgame.Move;
 import pentago_twist.PentagoPlayer;
 import pentago_twist.PentagoBoardState;
+import pentago_twist.PentagoMove;
 
 /** A player file submitted by a student. */
 public class StudentPlayer extends PentagoPlayer {
@@ -24,23 +26,30 @@ public class StudentPlayer extends PentagoPlayer {
      * make decisions.
      */
     public Move chooseMove(PentagoBoardState boardState) {
-        System.out.println("-----> STUDENT <-------\n");
         long startTime = System.currentTimeMillis();
         long endTime = startTime + 1800; // maximum 1800 ms to find a move
-        MyTools myTools = new MyTools();
-        Minimax minimax = new Minimax();
-        // ABPruning abPruning = new ABPruning();
-        PentagoBoardState pbs = (PentagoBoardState) boardState.clone();
-        int player = pbs.getTurnPlayer();
-        Move myMove;
-
-        // if(pbs.getTurnNumber() < 3){
-        //     myMove = myTools.playCenter(pbs, endTime);
-        // } else {
-            myMove = minimax.aBPruning(pbs, player);
-            // myMove = abPruning.alphaBetaPruning(boardState, endTime, player);
-        // }
         
+        Minimax minimax = new Minimax();
+        PentagoBoardState pbs = (PentagoBoardState) boardState.clone();
+
+        Move myMove;
+        
+        // if(pbs.getTurnNumber() == 0){
+        //     ArrayList<PentagoMove> allMoves = boardState.getAllLegalMoves();
+        //     for (PentagoMove pentagoMove : allMoves) {
+        //         int x = pentagoMove.getMoveCoord().getX();
+        //         int y = pentagoMove.getMoveCoord().getY();
+        //         if(x == 2 && y == 3){
+        //         System.out.println("---- 2,3 -----\n");
+        //         myMove = pentagoMove;
+        //           return myMove;
+        //         }
+        //       }
+        // } 
+        int player = pbs.getTurnPlayer();
+        myMove = minimax.aBPruning(pbs, player);
+        
+
         // Return your move to be processed by the server.
         return myMove;
     }

@@ -7,10 +7,11 @@ import boardgame.Board;
 import boardgame.Move;
 import pentago_twist.PentagoBoardState;
 import pentago_twist.PentagoMove;
+import pentago_twist.PentagoBoardState.Piece;
 
 public class Minimax {	
   private int WIN = 100;
-  private int DRAW = 5;
+  private int DRAW = 50;
   private int LOSE = -100;
 
   public Move aBPruning(PentagoBoardState pbs, int player){
@@ -35,11 +36,9 @@ public class Minimax {
     }
 
     if (isMax){
-      System.out.println("MAX");
       return maximize(node, alpha, beta, depth, isMax);
     } 
     else {
-      System.out.println("MIN");
       return minimize(node, alpha, beta, depth, isMax);
     }
   }
@@ -109,9 +108,6 @@ public class Minimax {
 			if (boardState.getWinner() == player) {
 				score += WIN;
 			}
-			else if (boardState.getWinner() == Board.DRAW) {
-				score += DRAW;
-			}
 			else {
 				score += LOSE;
 				}
@@ -124,92 +120,163 @@ public class Minimax {
   }
 
   public int bonusPoints(PentagoBoardState boardState, int player){
-    int bonus = 0;
-    if (player == PentagoBoardState.WHITE){ // Note: this means student is playing first
-      bonus += getAdjacentBonusPoints(boardState, "w");
+    int score = 0;
+    if (player == PentagoBoardState.WHITE){
+      score += getAdjacentBonusPoints(boardState, Piece.WHITE, Piece.BLACK);
     }
     else {
-      bonus += getAdjacentBonusPoints(boardState, "b");
+      score += getAdjacentBonusPoints(boardState, Piece.BLACK, Piece.WHITE);
     }
-    return bonus;
+    return score;
   }
 
-  public int getAdjacentBonusPoints(PentagoBoardState boardState, String playerColor){
+
+  public int getAdjacentBonusPoints(PentagoBoardState boardState, Piece playerColor, Piece oponentColor){
     int bonus = 0;
-    bonus += getDiagonalPoints(boardState, playerColor);
-    bonus += getRowPoints(boardState, playerColor);
-    bonus += getColumnPoints(boardState, playerColor);
+    // bonus += getMainDiagonalPoints(boardState, playerColor, oponentColor);
+    bonus += getRowPoints(boardState, playerColor, oponentColor);
+    bonus += getColumnPoints(boardState, playerColor, oponentColor);
+    bonus += getCenterPoints(boardState, playerColor, oponentColor);
     return bonus;
   }
 
-  public int getDiagonalPoints(PentagoBoardState boardState, String playerColor){
+  public int getCenterPoints(PentagoBoardState boardState, Piece playerColor, Piece oponentColor){
     int bonus = 0;
-    int increment = 2;
-    int lastConsecutive = -1;
-
-    // left to right
-    for (int i = 0; i <= 4; i++){ // up to 4 because at (4,4) it will also check piece at (5,5)
-      String d1 = boardState.getPieceAt(i, i).toString();
-      String d2 = boardState.getPieceAt((i+1)%6, (i+1)%6).toString(); // %6 to wrap around board limit
-      if(d1.equals(playerColor) && d2.equals(playerColor)){
-        lastConsecutive = i;
-        if(lastConsecutive == (i-1)){
-          increment *= 2; // The more consecutive pieces = the bigger the bonus
+    int[] centers = {1,4};
+    for (int i = 0; i < 2; i++){
+      for (int j = 0; i < 2; i++){
+        if (boardState.getPieceAt(centers[i], centers[j]) == playerColor){
+          bonus += 1; // give points for center
         }
-      }
-      bonus += increment; // bonus adjacent pieces along diagonal   
-    }
-    // right to left
-    for (int i = 5; i <= 1; i--){ // down to 1 because at (1,4) it will also check piece at (0,5)
-      String d1 = boardState.getPieceAt(i, 5-i).toString();
-      String d2 = boardState.getPieceAt((i-1)%6, (i+1)%6).toString(); // %6 to wrap around board limit
-      if(d1.equals(playerColor) && d2.equals(playerColor)){
-        lastConsecutive = i;
-        if(lastConsecutive == (i-1)){
-          increment *= 2; // The more consecutive pieces = the bigger the bonus
+        else if (boardState.getPieceAt(centers[i], centers[j]) == oponentColor){
+          bonus -= 1; // if center alreay used, not so good
         }
-      }
-      bonus += increment; // bonus adjacent pieces along diagonal   
+        else { // its empty
+          bonus += 10; // potentially a good move
+        }
+      } 
     }
     return bonus;
   }
 
-  public int getRowPoints(PentagoBoardState boardState, String playerColor){
+  public int getRowPoints(PentagoBoardState boardState, Piece playerColor, Piece oponentColor){
     int bonus = 0;
-    int increment = 2;
-    int lastConsecutive = -1;
-
-    for (int i = 0; i <= 4; i++){ // up to 4 adjacent because 5 would be game over
-      String r1 = boardState.getPieceAt(i, i).toString();
-      String r2 = boardState.getPieceAt((i+1)%6, i).toString(); // %6 to wrap around board limit
-      if(r1.equals(playerColor) && r2.equals(playerColor)){
-        lastConsecutive = i;
-        if(lastConsecutive == (i-1)){
-          increment *= 2; // The more consecutive pieces = the bigger the bonus
-        }
+    for (int row = 0; row < 5; row++){
+      for (int col = 0; col < 2; col++){
+        Piece r1 = boardState.getPieceAt(row, col);
+        Piece r2 = boardState.getPieceAt(row, col+1);
+        Piece r3 = boardState.getPieceAt(row, col+2);
+        Piece r4 = boardState.getPieceAt(row, col+3);
+        Piece r5 = boardState.getPieceAt(row, col+4);
+        if (r1 ==  playerColor && r2 == playerColor  && r3 == playerColor  && r4 == playerColor){
+          if(r5 == Piece.EMPTY){
+            bonus += 100; // if 4 in a row and 5th one is empty --> 100% DO THIS MOVE
+          } 
+        } 
+        else if (r1 ==  playerColor && r2 == playerColor  && r3 == playerColor){
+          if(r4 == Piece.EMPTY){
+            bonus += 40; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
+          } 
+        } 
+        else if (r2 ==  playerColor && r3 == playerColor  && r4 == playerColor){
+          if(r1 == Piece.EMPTY){
+            bonus += 40; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
+          } 
+        } 
+        else if (r3 ==  playerColor && r4 == playerColor  && r5 == playerColor){
+          if(r2 == Piece.EMPTY){
+            bonus += 40; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
+          } 
+        } 
+        else if (r1 ==  playerColor && r2 == playerColor){
+          if(r3 == Piece.EMPTY){
+            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
+          } 
+        } 
+        else if (r2 ==  playerColor && r3 == playerColor){
+          if(r1 == Piece.EMPTY){
+            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
+          } 
+          else if(r4 == Piece.EMPTY){
+            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
+          } 
+        } 
+        else if (r3 ==  playerColor && r4 == playerColor){
+          if(r2 == Piece.EMPTY){
+            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
+          } 
+          else if(r5 == Piece.EMPTY){
+            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
+          } 
+        } 
+        else if (r1 ==  oponentColor && r2 == oponentColor  && r3 == oponentColor  && r4 == oponentColor){
+          if (r5 == Piece.EMPTY){
+            bonus += 100; // OPONENT MIGHT WIN --> DEFENSE MOVE !!
+          } 
+        }  
       }
-      bonus += increment; // bonus adjacent pieces along row   
     }
     return bonus;
   }
 
-
-  public int getColumnPoints(PentagoBoardState boardState, String playerColor){
+  public int getColumnPoints(PentagoBoardState boardState, Piece playerColor, Piece oponentColor){
     int bonus = 0;
-    int increment = 2;
-    int lastConsecutive = -1;
-
-    for (int i = 0; i <= 4; i++){ // up to 4 adjacent because 5 would be game over
-      String c1 = boardState.getPieceAt(i, i).toString();
-      String c2 = boardState.getPieceAt(i, (i+1)%6).toString(); // %6 to wrap around board limit
-      if(c1.equals(playerColor) && c2.equals(playerColor)){
-        lastConsecutive = i;
-        if(lastConsecutive == (i-1)){
-          increment *= 2; // The more consecutive pieces = the bigger the bonus
-        }
+    for (int col = 0; col < 5; col++){
+      for (int row = 0; row < 2; row++){
+        Piece r1 = boardState.getPieceAt(row, col);
+        Piece r2 = boardState.getPieceAt(row+1, col);
+        Piece r3 = boardState.getPieceAt(row+2, col);
+        Piece r4 = boardState.getPieceAt(row+3, col);
+        Piece r5 = boardState.getPieceAt(row+4, col);
+        if (r1 ==  playerColor && r2 == playerColor  && r3 == playerColor  && r4 == playerColor){
+          if(r5 == Piece.EMPTY){
+            bonus += 100; // if 4 in a row and 5th one is empty --> 100% DO THIS MOVE
+          } 
+        } 
+        else if (r1 ==  playerColor && r2 == playerColor  && r3 == playerColor){
+          if(r4 == Piece.EMPTY){
+            bonus += 40; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
+          } 
+        } 
+        else if (r2 ==  playerColor && r3 == playerColor  && r4 == playerColor){
+          if(r1 == Piece.EMPTY){
+            bonus += 40; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
+          } 
+        } 
+        else if (r3 ==  playerColor && r4 == playerColor  && r5 == playerColor){
+          if(r2 == Piece.EMPTY){
+            bonus += 40; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
+          } 
+        } 
+        else if (r1 ==  playerColor && r2 == playerColor){
+          if(r3 == Piece.EMPTY){
+            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
+          } 
+        } 
+        else if (r2 ==  playerColor && r3 == playerColor){
+          if(r1 == Piece.EMPTY){
+            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
+          } 
+          else if(r4 == Piece.EMPTY){
+            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
+          } 
+        } 
+        else if (r3 ==  playerColor && r4 == playerColor){
+          if(r2 == Piece.EMPTY){
+            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
+          } 
+          else if(r5 == Piece.EMPTY){
+            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
+          } 
+        } 
+        else if (r1 ==  oponentColor && r2 == oponentColor  && r3 == oponentColor  && r4 == oponentColor){
+          if (r5 == Piece.EMPTY){
+            bonus += 100; // OPONENT MIGHT WIN --> DEFENSE MOVE !!
+          } 
+        }  
       }
-      bonus += increment; // bonus adjacent pieces along row   
     }
     return bonus;
   }
+
 }
