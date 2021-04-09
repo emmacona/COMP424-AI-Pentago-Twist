@@ -1,6 +1,7 @@
 package student_player;
 
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import boardgame.Move;
 import pentago_twist.PentagoBoardState;
@@ -22,7 +23,7 @@ public class Node {
 
     public Node(PentagoBoardState pentagoBoardState) {
       this.pentagoBoardState = pentagoBoardState;
-      this.isMax = true;
+      this.children = new CopyOnWriteArrayList<>();
     } 
 
     List<Node> getChildren() {

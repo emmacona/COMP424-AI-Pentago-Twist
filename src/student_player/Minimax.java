@@ -1,7 +1,6 @@
 package student_player;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import boardgame.Board;
 import boardgame.Move;
@@ -11,21 +10,31 @@ import pentago_twist.PentagoBoardState.Piece;
 
 public class Minimax {	
   private int WIN = 100;
-  private int DRAW = 50;
+  private int DRAW = 5;
   private int LOSE = -100;
 
-  public Move aBPruning(PentagoBoardState pbs, int player){
-    int alpha = -Integer.MAX_VALUE; // At max nodes, update α only
-    int beta = Integer.MAX_VALUE; // At min nodes, update β only
+  public Move aBPruning(PentagoBoardState pbs, int player, long endTime){
+    while(System.currentTimeMillis() < endTime){
+      int alpha = -Integer.MAX_VALUE; // At max nodes, update α only
+      int beta = Integer.MAX_VALUE; // At min nodes, update β only
+  
+      Node root = new Node(pbs);
+      toggleMinimax(root, alpha, beta, true, 0);
+      Move myMove = root.getBestMove();
 
-    Node root = new Node(pbs);
-    toggleMinimax(root, alpha, beta, true, 0);
-    Move myMove = root.getBestMove();
-    if (myMove == null){
-      System.out.println("Not found - Get random");
-      myMove = pbs.getRandomMove();
+      for(Node node : root.getChildren()) {
+        if(node.getBoardState().getWinner() == pbs.getTurnPlayer()) {
+          return node.pentagoMove;
+        }
+      }
+
+      if (myMove == null){
+        System.out.println("Get random");
+        myMove = pbs.getRandomMove();
+      }
+      return myMove;
     }
-    return myMove;
+    return pbs.getRandomMove(); 
   }
 
   public int toggleMinimax(Node node, int alpha, int beta, boolean isMax, int depth){
@@ -56,13 +65,16 @@ public class Minimax {
       Node child = new Node(clonedBoard);
       child.setParent(node);
       child.setPentagoMove(pentagoMove);
+      node.addChild(child);
 
       int value = toggleMinimax(child, alpha, beta, !isMax, depth+1);
 
       // Update alpha
       if(alpha < value){
         alpha = value;
+        // node.setPentagoMove(pentagoMove);
         node.setBestMove(pentagoMove);
+        node.setValue(value);
       }
 
       if (alpha >= beta) {
@@ -85,13 +97,16 @@ public class Minimax {
       Node child = new Node(clonedBoard);
       child.setParent(node);
       child.setPentagoMove(pentagoMove);
+      node.addChild(child);
 
       int value = toggleMinimax(child, alpha, beta, !isMax, depth+1);
 
       // Update alpha
       if(beta > value){
         beta = value;
+        // node.setPentagoMove(pentagoMove);
         node.setBestMove(pentagoMove);
+        node.setValue(value);
       }
 
       if (alpha >= beta) break; // prune
@@ -108,6 +123,9 @@ public class Minimax {
 			if (boardState.getWinner() == player) {
 				score += WIN;
 			}
+      else if(boardState.getWinner() == Board.DRAW){
+        score += DRAW;
+      }
 			else {
 				score += LOSE;
 				}
@@ -133,10 +151,145 @@ public class Minimax {
 
   public int getAdjacentBonusPoints(PentagoBoardState boardState, Piece playerColor, Piece oponentColor){
     int bonus = 0;
-    // bonus += getMainDiagonalPoints(boardState, playerColor, oponentColor);
+    bonus += getLRDiagonalPoints(boardState, playerColor, oponentColor);
+    bonus += getRLDiagonalPoints(boardState, playerColor, oponentColor);
     bonus += getRowPoints(boardState, playerColor, oponentColor);
     bonus += getColumnPoints(boardState, playerColor, oponentColor);
     bonus += getCenterPoints(boardState, playerColor, oponentColor);
+    return bonus;
+  }
+
+  public int getRLDiagonalPoints(PentagoBoardState boardState, Piece playerColor, Piece oponentColor){
+    int bonus = 0;
+    int[] diag1_X = {5, 4, 3, 2, 1, 0};
+    int[] diag1_Y = {5, 4, 3, 2, 1, 0};
+    int[] diag2_X = {4, 3, 2, 1, 0};
+    int[] diag2_Y = {0, 1, 2, 3, 4};
+    int[] diag3_X = {5, 4, 3, 2, 1};
+    int[] diag3_Y = {1, 2, 3, 4, 5};
+
+    for (int i = 0; i < 2; i++){
+      if (i == 0) {
+        Piece r1 = boardState.getPieceAt(diag1_X[0], diag1_Y[0]);
+        Piece r2 = boardState.getPieceAt(diag1_X[1], diag1_Y[1]);
+        Piece r3 = boardState.getPieceAt(diag1_X[2], diag1_Y[2]);
+        Piece r4 = boardState.getPieceAt(diag1_X[3], diag1_Y[3]);
+        Piece r5 = boardState.getPieceAt(diag1_X[4], diag1_Y[4]);
+        Piece r6 = boardState.getPieceAt(diag1_X[5], diag1_Y[5]);
+        
+        bonus += calculatePoints(playerColor, oponentColor, r1, r2, r3, r4, r5);
+        bonus += calculatePoints(playerColor, oponentColor, r2, r3, r4, r5, r6);    
+      }
+      if (i == 1) {
+        Piece r1 = boardState.getPieceAt(diag2_X[0], diag2_Y[0]);
+        Piece r2 = boardState.getPieceAt(diag2_X[1], diag2_Y[1]);
+        Piece r3 = boardState.getPieceAt(diag2_X[2], diag2_Y[2]);
+        Piece r4 = boardState.getPieceAt(diag2_X[3], diag2_Y[3]);
+        Piece r5 = boardState.getPieceAt(diag2_X[4], diag2_Y[4]);
+        
+        bonus += calculatePoints(playerColor, oponentColor, r1, r2, r3, r4, r5);   
+      }
+      if (i == 2) {
+        Piece r1 = boardState.getPieceAt(diag3_X[0], diag3_Y[0]);
+        Piece r2 = boardState.getPieceAt(diag3_X[1], diag3_Y[1]);
+        Piece r3 = boardState.getPieceAt(diag3_X[2], diag3_Y[2]);
+        Piece r4 = boardState.getPieceAt(diag3_X[3], diag3_Y[3]);
+        Piece r5 = boardState.getPieceAt(diag3_X[4], diag3_Y[4]);
+        
+        bonus += calculatePoints(playerColor, oponentColor, r1, r2, r3, r4, r5);   
+      }
+
+    }
+    return bonus;
+  }
+
+
+  public int getLRDiagonalPoints(PentagoBoardState boardState, Piece playerColor, Piece oponentColor){
+    int bonus = 0;
+    int[] diag1_X = {0, 1, 2, 3, 4, 5};
+    int[] diag1_Y = {0, 1, 2, 3, 4, 5};
+    int[] diag2_X = {0, 1, 2, 3, 4};
+    int[] diag2_Y = {1, 2, 3, 4, 5};
+    int[] diag3_X = {1, 2, 3, 4, 5};
+    int[] diag3_Y = {0, 1, 2, 3, 4};
+
+    for (int i = 0; i < 2; i++){
+      if (i == 0) {
+        Piece r1 = boardState.getPieceAt(diag1_X[0], diag1_Y[0]);
+        Piece r2 = boardState.getPieceAt(diag1_X[1], diag1_Y[1]);
+        Piece r3 = boardState.getPieceAt(diag1_X[2], diag1_Y[2]);
+        Piece r4 = boardState.getPieceAt(diag1_X[3], diag1_Y[3]);
+        Piece r5 = boardState.getPieceAt(diag1_X[4], diag1_Y[4]);
+        Piece r6 = boardState.getPieceAt(diag1_X[5], diag1_Y[5]);
+        
+        bonus += calculatePoints(playerColor, oponentColor, r1, r2, r3, r4, r5);
+        bonus += calculatePoints(playerColor, oponentColor, r2, r3, r4, r5, r6);    
+      }
+      if (i == 1) {
+        Piece r1 = boardState.getPieceAt(diag2_X[0], diag2_Y[0]);
+        Piece r2 = boardState.getPieceAt(diag2_X[1], diag2_Y[1]);
+        Piece r3 = boardState.getPieceAt(diag2_X[2], diag2_Y[2]);
+        Piece r4 = boardState.getPieceAt(diag2_X[3], diag2_Y[3]);
+        Piece r5 = boardState.getPieceAt(diag2_X[4], diag2_Y[4]);
+        
+        bonus += calculatePoints(playerColor, oponentColor, r1, r2, r3, r4, r5);   
+      }
+      if (i == 2) {
+        Piece r1 = boardState.getPieceAt(diag3_X[0], diag3_Y[0]);
+        Piece r2 = boardState.getPieceAt(diag3_X[1], diag3_Y[1]);
+        Piece r3 = boardState.getPieceAt(diag3_X[2], diag3_Y[2]);
+        Piece r4 = boardState.getPieceAt(diag3_X[3], diag3_Y[3]);
+        Piece r5 = boardState.getPieceAt(diag3_X[4], diag3_Y[4]);
+        
+        bonus += calculatePoints(playerColor, oponentColor, r1, r2, r3, r4, r5);   
+      }
+
+    }
+    return bonus;
+  }
+
+  public int calculatePoints(Piece playerColor, Piece oponentColor, Piece r1, Piece r2, Piece r3, Piece r4, Piece r5){
+    int bonus = 0;
+    if (r1 ==  playerColor && r2 == playerColor  && r3 == playerColor  && r4 == playerColor){
+      if(r5 == Piece.EMPTY){
+        bonus += 500; // if 4 in a row and 5th one is empty --> 100% DO THIS MOVE
+      } 
+    } 
+    else if (r1 ==  playerColor && r2 == playerColor  && r3 == playerColor){
+      if(r4 == Piece.EMPTY){
+        bonus += 40;
+      } 
+    } 
+    else if (r2 ==  playerColor && r3 == playerColor  && r4 == playerColor){
+      if(r1 == Piece.EMPTY || r5 == Piece.EMPTY){
+        bonus += 40;
+      } 
+    } 
+    else if (r3 ==  playerColor && r4 == playerColor  && r5 == playerColor){
+      if(r2 == Piece.EMPTY){
+        bonus += 40;
+      } 
+    } 
+    else if (r1 ==  playerColor && r2 == playerColor){
+      if(r3 == Piece.EMPTY){
+        bonus += 20;
+      } 
+    } 
+    else if (r2 ==  playerColor && r3 == playerColor){
+      if(r1 == Piece.EMPTY || r4 == Piece.EMPTY){
+        bonus += 20;
+      } 
+    } 
+    else if (r3 ==  playerColor && r4 == playerColor){
+      if(r2 == Piece.EMPTY || r5 == Piece.EMPTY){
+        bonus += 20;
+      } 
+    } 
+    else if (r1 ==  oponentColor && r2 == oponentColor  && r3 == oponentColor  && r4 == oponentColor){
+      if (r5 == Piece.EMPTY){
+        bonus += 500; // OPONENT MIGHT WIN --> DEFENSE MOVE !!
+      } 
+    } 
     return bonus;
   }
 
@@ -161,59 +314,14 @@ public class Minimax {
 
   public int getRowPoints(PentagoBoardState boardState, Piece playerColor, Piece oponentColor){
     int bonus = 0;
-    for (int row = 0; row < 5; row++){
+    for (int row = 0; row <= 5; row++){
       for (int col = 0; col < 2; col++){
         Piece r1 = boardState.getPieceAt(row, col);
         Piece r2 = boardState.getPieceAt(row, col+1);
         Piece r3 = boardState.getPieceAt(row, col+2);
         Piece r4 = boardState.getPieceAt(row, col+3);
         Piece r5 = boardState.getPieceAt(row, col+4);
-        if (r1 ==  playerColor && r2 == playerColor  && r3 == playerColor  && r4 == playerColor){
-          if(r5 == Piece.EMPTY){
-            bonus += 100; // if 4 in a row and 5th one is empty --> 100% DO THIS MOVE
-          } 
-        } 
-        else if (r1 ==  playerColor && r2 == playerColor  && r3 == playerColor){
-          if(r4 == Piece.EMPTY){
-            bonus += 40; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
-          } 
-        } 
-        else if (r2 ==  playerColor && r3 == playerColor  && r4 == playerColor){
-          if(r1 == Piece.EMPTY){
-            bonus += 40; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
-          } 
-        } 
-        else if (r3 ==  playerColor && r4 == playerColor  && r5 == playerColor){
-          if(r2 == Piece.EMPTY){
-            bonus += 40; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
-          } 
-        } 
-        else if (r1 ==  playerColor && r2 == playerColor){
-          if(r3 == Piece.EMPTY){
-            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
-          } 
-        } 
-        else if (r2 ==  playerColor && r3 == playerColor){
-          if(r1 == Piece.EMPTY){
-            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
-          } 
-          else if(r4 == Piece.EMPTY){
-            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
-          } 
-        } 
-        else if (r3 ==  playerColor && r4 == playerColor){
-          if(r2 == Piece.EMPTY){
-            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
-          } 
-          else if(r5 == Piece.EMPTY){
-            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
-          } 
-        } 
-        else if (r1 ==  oponentColor && r2 == oponentColor  && r3 == oponentColor  && r4 == oponentColor){
-          if (r5 == Piece.EMPTY){
-            bonus += 100; // OPONENT MIGHT WIN --> DEFENSE MOVE !!
-          } 
-        }  
+        bonus += calculatePoints(playerColor, oponentColor, r1, r2, r3, r4, r5);
       }
     }
     return bonus;
@@ -221,59 +329,14 @@ public class Minimax {
 
   public int getColumnPoints(PentagoBoardState boardState, Piece playerColor, Piece oponentColor){
     int bonus = 0;
-    for (int col = 0; col < 5; col++){
+    for (int col = 0; col <= 5; col++){
       for (int row = 0; row < 2; row++){
         Piece r1 = boardState.getPieceAt(row, col);
         Piece r2 = boardState.getPieceAt(row+1, col);
         Piece r3 = boardState.getPieceAt(row+2, col);
         Piece r4 = boardState.getPieceAt(row+3, col);
-        Piece r5 = boardState.getPieceAt(row+4, col);
-        if (r1 ==  playerColor && r2 == playerColor  && r3 == playerColor  && r4 == playerColor){
-          if(r5 == Piece.EMPTY){
-            bonus += 100; // if 4 in a row and 5th one is empty --> 100% DO THIS MOVE
-          } 
-        } 
-        else if (r1 ==  playerColor && r2 == playerColor  && r3 == playerColor){
-          if(r4 == Piece.EMPTY){
-            bonus += 40; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
-          } 
-        } 
-        else if (r2 ==  playerColor && r3 == playerColor  && r4 == playerColor){
-          if(r1 == Piece.EMPTY){
-            bonus += 40; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
-          } 
-        } 
-        else if (r3 ==  playerColor && r4 == playerColor  && r5 == playerColor){
-          if(r2 == Piece.EMPTY){
-            bonus += 40; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
-          } 
-        } 
-        else if (r1 ==  playerColor && r2 == playerColor){
-          if(r3 == Piece.EMPTY){
-            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
-          } 
-        } 
-        else if (r2 ==  playerColor && r3 == playerColor){
-          if(r1 == Piece.EMPTY){
-            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
-          } 
-          else if(r4 == Piece.EMPTY){
-            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
-          } 
-        } 
-        else if (r3 ==  playerColor && r4 == playerColor){
-          if(r2 == Piece.EMPTY){
-            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
-          } 
-          else if(r5 == Piece.EMPTY){
-            bonus += 20; // if 4 in a row and 5th one is empty --> DO THIS MOVE (otherwise its useless)
-          } 
-        } 
-        else if (r1 ==  oponentColor && r2 == oponentColor  && r3 == oponentColor  && r4 == oponentColor){
-          if (r5 == Piece.EMPTY){
-            bonus += 100; // OPONENT MIGHT WIN --> DEFENSE MOVE !!
-          } 
-        }  
+        Piece r5 = boardState.getPieceAt(row+4, col);     
+        bonus += calculatePoints(playerColor, oponentColor, r1, r2, r3, r4, r5);
       }
     }
     return bonus;
